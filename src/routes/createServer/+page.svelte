@@ -90,7 +90,7 @@ function readPemFile(file) {
       };
       const response = await fetch("http://localhost:7930/server",{
         method: "POST",
-        headers:{ "Content-Type": "application/json"},
+        headers:{ "Content-Type": "application/json", Authorization: `Bearer ${user?.token}`},
         body: JSON.stringify(data)
       });
       if(!response.ok) return alert("Error While Creating Server");

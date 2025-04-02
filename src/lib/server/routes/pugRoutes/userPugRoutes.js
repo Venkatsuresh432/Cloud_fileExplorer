@@ -1,7 +1,6 @@
 const express = require('express')
-const userC = require('./../../controllers/userController')
 const pugC = require('./../../controllers/pugControllers')
-const clientPugC = require('./../../controllers/pugUserController')
+
 const router = express.Router()
 
 

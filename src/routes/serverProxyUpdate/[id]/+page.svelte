@@ -1,12 +1,29 @@
 <script>
+    import { userStore } from '$lib/store';
     import { page }  from '$app/stores'
+	import { onMount } from 'svelte';
     export let id = $page.params.id;
     export let name;
     let servers = ''
     let isChecked = "";
 
+    let user = null;
+    $: user = $userStore;
+    onMount(() => {
+        const storedUser = Cookies.get("user");
+        if (storedUser) {
+            user = JSON.parse(storedUser);
+            userStore.set(user);
+        } else {
+            goto('/login'); 
+        }
+    });
+
     async function serverData() {
-    const response = await fetch(`http://localhost:7930/server/${id}`, { method: 'GET' });
+    const response = await fetch(`http://localhost:7930/server/${id}`, { 
+        method: 'GET',
+         header: { Authorization: `Bearer ${user?.token}`}
+     });
     if(!response.ok)  return alert("Error While getting Server");
     const serverData = await response.json();
     alert(serverData.message)
@@ -22,7 +39,8 @@
         const response = await fetch(`http://localhost:7930/servers/${id}`, {
             method: "PUT",
             headers: {
-                "Content-Type": "application/x-www-form-urlencoded"
+                "Content-Type": "application/x-www-form-urlencoded",
+                 Authorization: `Bearer ${user?.token}`
             },
             body: new URLSearchParams({
                 bypassProxy: isChecked ? 1 : 0
@@ -35,6 +53,7 @@
             console.error("Failed to update proxy access");
         }
     };
+    onMount(serverData);
 </script>
 
 <main id="main" class="main">

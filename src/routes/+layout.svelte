@@ -5,12 +5,15 @@
     import Cookies from "js-cookie";
     import { goto } from '$app/navigation';
     let user = null;
-  onMount (()=> {
-    user = get(store);
-    if(!user){
-      goto("/login")
-    }
-  });
+    onMount(() => {
+        const storedUser = Cookies.get("user");
+        if (storedUser) {
+            user = JSON.parse(storedUser);
+            store.set(user);
+        } else {
+            goto('/login'); 
+        }
+    });
 
   function logout() {
         store.set(null);
@@ -54,17 +57,11 @@
         <li class="nav-item dropdown pe-3 me-5">
           <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
             <img src="/assets/img/profile-img.jpg" alt="Profile" class="rounded-circle" />
-            <span class="d-none d-md-block dropdown-toggle ps-2">Guest</span>
+            <span class="d-none d-md-block dropdown-toggle ps-2">{user?.name}</span>
           </a>
           <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
             <li class="dropdown-header">
-              <h6>Hi, Guest</h6>
-            </li>
-            <li><hr class="dropdown-divider" /></li>
-            <li>
-              <a class="dropdown-item d-flex align-items-center" href="users-profile.html">
-                <i class="bi bi-person"></i> <span>My Profile</span>
-              </a>
+              <h6>Hi, {user?.name}</h6>
             </li>
             <li><hr class="dropdown-divider" /></li>
             <li>
@@ -80,7 +77,7 @@
 <aside id="sidebar" class="sidebar">
     <ul class="sidebar-nav" id="sidebar-nav">
       <li class="nav-heading">Menus</li>
-      {#if user && user.role === "admin"}
+      {#if user && user?.role === "admin"}
         <li class="nav-item">
           <a class="nav-link collapsed" href="/users">
             <i class="bi bi-person"></i>
@@ -94,7 +91,7 @@
           </a>
         </li>
       {/if}
-      {#if user && user.role === "client"}
+      {#if user && user?.role === "client"}
         <li class="nav-item">
           <a class="nav-link collapsed" href="/usersServerList">
             <i class="bi bi-hdd-stack-fill"></i>

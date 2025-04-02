@@ -1,9 +1,10 @@
 const serverController = require("../controllers/serverController")
-
+const token = require("../middleware/TokenVerifier") 
 
 const express = require("express")
 const router = express.Router();
 
+router.use(token.userVerification);
 
 router.route("/server")
 .post(serverController.createServerComponent)

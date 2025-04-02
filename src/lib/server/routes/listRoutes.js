@@ -1,8 +1,12 @@
 const express = require('express')
 const pugC = require('../controllers/pugControllers')
 const listController = require('../controllers/listControllers')
+const token = require("../middleware/TokenVerifier") 
 const router = express.Router()
 router.use(express.urlencoded({ extended: true }));
+
+router.use(token.adminVerification);
+
 
 // user Lists
 router.route('/serverAllotment/:id').get(listController.serverAllot)

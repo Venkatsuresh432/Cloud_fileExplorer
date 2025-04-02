@@ -6,17 +6,14 @@
     let user = null;
     $: user = $userStore;
     onMount(() => {
-        if (!user) {
-            const storedUser = Cookies.get("user");
-            if (storedUser) {
-                user = JSON.parse(storedUser);
-                userStore.set(user);
-            } 
-            else {
-              goto('/login');
-            }
+        const storedUser = Cookies.get("user");
+        if (storedUser) {
+            user = JSON.parse(storedUser);
+            userStore.set(user);
+        } else {
+            goto('/login'); 
         }
-    })
+    });
   // Form Data Variables
   let userName = "";
   let email = "";
@@ -44,7 +41,10 @@
     console.log(data);
     const response = await fetch("http://127.0.0.1:7930/user",{
       method:'POST',
-      headers: { 'Content-Type' : 'application/json' },
+      headers: { 
+        'Content-Type' : 'application/json',
+         Authorization: `Bearer ${user?.token}`
+       },
       body: JSON.stringify(data)
     });
     if(!response) return alert("error while add user")

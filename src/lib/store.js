@@ -3,7 +3,6 @@ import Cookies from "js-cookie";
 
 export const userStore = writable(null);
 
-
 if (typeof window !== "undefined") {
     const storedUser = Cookies.get("user");
     if (storedUser) {
@@ -12,10 +11,12 @@ if (typeof window !== "undefined") {
 }
 
 userStore.subscribe(value => {
-    if (value) {
-        Cookies.set("user", JSON.stringify(value), { expires: 1, path: '/' });
-    } else {
-        Cookies.remove("user");
+    if (typeof window !== "undefined") {
+        if (value) {
+            Cookies.set("user", JSON.stringify(value), { expires: 1, path: '/', secure: true, sameSite: 'Strict' });
+        } else {
+            Cookies.remove("user");
+        }
     }
 });
 

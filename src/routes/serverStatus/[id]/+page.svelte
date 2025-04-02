@@ -1,16 +1,30 @@
 <script>
+     import { userStore } from '$lib/store';
 	import { goto } from '$app/navigation';
     import { page } from '$app/stores'
 	import { onMount } from 'svelte';
     export let id = $page.params.id;
     let servers = '';
     export let name;
-    
     let isChecked = '';
+    let user = null;
+    $: user = $userStore;
+    onMount(() => {
+        const storedUser = Cookies.get("user");
+        if (storedUser) {
+            user = JSON.parse(storedUser);
+            userStore.set(user);
+        } else {
+            goto('/login'); 
+        }
+    });
 
 
     async function serverData() {
-    const response = await fetch(`http://localhost:7930/server/${id}`, { method: 'GET' });
+    const response = await fetch(`http://localhost:7930/server/${id}`, { 
+        method: 'GET',
+        headers: { Authorization: `Bearer ${user?.token}` }
+     });
     if(!response.ok)  return alert("Error While getting Server");
     const serverData = await response.json();
     alert(serverData.message)
@@ -27,7 +41,8 @@
         const response = await fetch(`http://localhost:7930/server/${id}`, {
             method: "PUT",
             headers: {
-                "Content-Type": "application/x-www-form-urlencoded"
+                "Content-Type": "application/x-www-form-urlencoded",
+                 Authorization: `Bearer ${user?.token}`
             },
             body: new URLSearchParams({
                 status: isChecked ? 1 : 0

@@ -2,8 +2,12 @@ const express = require('express')
 const sftpController = require('./../controllers/sftpControllers')
 const router = express.Router()
 const multer = require("multer");
-  
+const token = require("../middleware/TokenVerifier") 
+
+router.use(token.userVerification);  
 let uploadProgress = {}; 
+
+
 
 router.get("/progress/:uploadId", (req, res) => {
     const { uploadId } = req.params;

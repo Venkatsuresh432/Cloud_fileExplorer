@@ -8,23 +8,24 @@
     let user = null;
     $: user = $userStore;
     onMount(() => {
-        if (!user) {
-            const storedUser = Cookies.get("user");
-            if (storedUser) {
-                user = JSON.parse(storedUser);
-                userStore.set(user);
-            } else {
-              goto('/login');
-            }
+        const storedUser = Cookies.get("user");
+        if (storedUser) {
+            user = JSON.parse(storedUser);
+            userStore.set(user);
+        } else {
+            goto('/login'); 
         }
-    })
+    });
 
   export let servers = [];
   // Function to confirm before deletion
   async function confirmDelete(id) {
   if (!confirm("Are you sure?")) return; 
   try {
-    const response = await fetch(`http://localhost:7930/server/${id}`, { method: 'DELETE' });
+    const response = await fetch(`http://localhost:7930/server/${id}`, { 
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${user?.token}` }
+     });
     if (!response.ok) {
       throw new Error("Error deleting the server");
     }
@@ -46,7 +47,10 @@ function redirectTerminal(id){
 }
 
   async function serverData() {
-    const response = await fetch(`http://localhost:7930/server`, { method: 'GET' });
+    const response = await fetch(`http://localhost:7930/server`, { 
+      method: 'GET',
+        headers :{ Authorization: `Bearer ${user?.token}` }
+     });
     if(!response.ok)  return alert("Error While getting Server");
     const serverData = await response.json();
     alert(serverData.message)
@@ -63,6 +67,7 @@ async function updateServerStatus(id){
 async function updateByPassProxy(id) {
   goto(`/serverProxyUpdate/${id}`)
 }
+
   onMount(serverData);
 </script>
 
@@ -73,7 +78,7 @@ async function updateByPassProxy(id) {
         <div class="card">
           <div class="card-body">
             <h5 class="card-title">
-              Server List
+              Server List  Hi {user?.name}
               <a href="#" on:click={createServer} class="btn btn-primary btn-sm position-absolute end-0 me-5">
                 Add Server
               </a>

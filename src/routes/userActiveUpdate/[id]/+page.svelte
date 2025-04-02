@@ -1,12 +1,19 @@
 <script>
 	import { goto } from '$app/navigation';
-    import { page } from '$app/stores'
+    import { page } from '$app/stores';
+    import Cookies from "js-cookie";
+    import { userStore } from '$lib/store';
     export let id = $page.params.id;
     import { onMount } from "svelte";
+    let user = null;
+    $: user = $userStore;
     let isChecked = ''
     let users ='';
     async function userData() {
-    const response = await fetch(`http://127.0.0.1:7930/user/${id}`, { method : 'GET' })
+    const response = await fetch(`http://127.0.0.1:7930/user/${id}`, { 
+        method : 'GET' ,
+        headers: {  Authorization: `Bearer ${user?.token}` }
+    })
     if(!response.ok) return alert("fetch failed")
     const userItem = await response.json()
     alert(userItem.message)
@@ -20,7 +27,8 @@
         const response = await fetch(`http://localhost:7930/user/status/${id}`, {
             method: "PUT",
             headers: {
-                "Content-Type": "application/x-www-form-urlencoded"
+                "Content-Type": "application/x-www-form-urlencoded",
+                 Authorization: `Bearer ${user?.token}`
             },
             body: new URLSearchParams({
                 status: isChecked ? 1 : 0
@@ -33,7 +41,16 @@
             console.error("Failed to update user activation status");
         }
     };
-    onMount(userData)
+    onMount(() => {
+        const storedUser = Cookies.get("user");
+        if (storedUser) {
+            user = JSON.parse(storedUser);
+            userStore.set(user);
+        } else {
+            goto('/login'); 
+        }
+    });
+    onMount(userData);
 </script>
 
 <main id="main" class="main">

@@ -8,16 +8,14 @@ import { userStore } from '$lib/store';
     let user = null;
     $: user = $userStore;
     onMount(() => {
-        if (!user) {
-            const storedUser = Cookies.get("user");
-            if (storedUser) {
-                user = JSON.parse(storedUser);
-                userStore.set(user);
-            } else {
-              goto('/login');
-            }
+        const storedUser = Cookies.get("user");
+        if (storedUser) {
+            user = JSON.parse(storedUser);
+            userStore.set(user);
+        } else {
+            goto('/login'); 
         }
-    })
+    });
 export let users = [];
 
 var time = ''
@@ -28,7 +26,10 @@ function formatDate(date) {
 }
 //   export let users = [];
   async function userData() {
-    const response = await fetch("http://127.0.0.1:7930/user", { method : 'GET' })
+    const response = await fetch("http://127.0.0.1:7930/user", { 
+      method : 'GET',
+      headers: { Authorization: `Bearer ${user?.token}` }
+    })
     if(!response.ok) return alert("fetch failed")
     const userItem = await response.json()
     alert(userItem.message)
@@ -45,7 +46,10 @@ function formatDate(date) {
 
   async function confirmDelete(userId) {
    if(confirm("Are You Sure?")){
-    const response = await fetch(`http://localhost:7930/user/server/${userId}`, { method : 'DELETE'});
+    const response = await fetch(`http://localhost:7930/user/server/${userId}`, {
+       method : 'DELETE',
+       headers : {  Authorization: `Bearer ${user?.token}` }
+      });
     if(!response.ok) return alert("Error for delete User")
     const data = response.json()
     console.log(data)

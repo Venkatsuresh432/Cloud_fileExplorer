@@ -23,7 +23,10 @@
     })
 
 async function fetchFiles(){
-  const response = await fetch(`http://localhost:7930/lists/serverAllotment/${userId}`, { method : "GET" });
+  const response = await fetch(`http://localhost:7930/lists/serverAllotment/${userId}`, {
+     method : "GET" ,
+     headers: {Authorization: `Bearer ${user?.token}`}
+    });
   if(!response.ok) return alert("Error While Fetching Data");
   const fetchData = await response.json();
   console.log(fetchData)
@@ -37,7 +40,10 @@ async function fetchFiles(){
     }
     async function addServerToUser(id)
     {
-      const response = await fetch(`http://localhost:7930/lists/addServer/${userId}/${id}`,{method: 'PUT'})
+      const response = await fetch(`http://localhost:7930/lists/addServer/${userId}/${id}`,{
+        method: 'PUT',
+        headers: {Authorization: `Bearer ${user?.token}`}
+      })
       if(!response.ok) return alert("Server Not Be Updated")
       const data = response.json();
       console.log(data)

@@ -44,7 +44,7 @@ import { userStore } from '$lib/store';
     console.log(data);
     const response = await fetch("http://127.0.0.1:7930/user",{
       method:'POST',
-      headers: { 'Content-Type' : 'application/json' },
+      headers: { 'Content-Type' : 'application/json', Authorization: `Bearer ${user?.token}` },
       body: JSON.stringify(data)
     });
     if(!response) return alert("error while add user")

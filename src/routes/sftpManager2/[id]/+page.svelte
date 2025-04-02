@@ -8,17 +8,6 @@
     import { page } from '$app/stores'
     let user = null;
     $: user = $userStore;
-    onMount(() => {
-        if (!user) {
-            const storedUser = Cookies.get("user");
-            if (storedUser) {
-                user = JSON.parse(storedUser);
-                userStore.set(user);
-            } else {
-              goto('/login');
-            }
-        }
-    })
    import './filemanager2.css'
    import { storeCopiedItems, getCopiedItems, clearCopiedItems } from "$lib/store";
 
@@ -128,7 +117,7 @@
         if(!copiedItems || copiedItems === 0) return alert("No copied items found")
         fetch(`http://localhost:7930/sftp/pasted/${serverId}?path=${destPath}`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json",  Authorization: `Bearer ${user?.token}`  },
             body: JSON.stringify(copiedItems),
         })
         .then(res => res.json())
@@ -151,7 +140,7 @@
 
         fetch("http://localhost:7930/sftp/rename", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json",  Authorization: `Bearer ${user?.token}` },
             body: JSON.stringify({ serverId, oldPath: selectedPath, newPath }),
         })
         .then(res => res.json())
@@ -173,7 +162,7 @@
         const path = currentPath;
         fetch("http://localhost:7930/sftp/delete", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json",  Authorization: `Bearer ${user?.token}` },
             body: JSON.stringify({ serverId, filePaths: deleteList  }),
         })
         .then(res => res.json())
@@ -223,7 +212,7 @@
     // }
 
      async function fetchFiles(path = "") {
-      const response = await fetch(`http://localhost:7930/sftp/files/${serverId}?path=${path}`)
+      const response = await fetch(`http://localhost:7930/sftp/files/${serverId}?path=${path}`,{ method : "GET", headers : {  Authorization: `Bearer ${user?.token}` }})
       if(!response.ok) return alert("error while fetch data");
       const fileData = await response.json();
         console.log('Fetching files...',fileData);
@@ -264,6 +253,7 @@
                 const response = await fetch(`http://localhost:7930/sftp/uploadFile/${serverId}?path=${currentPath}`,
                  {
                     method: "POST",
+                    headers :{ Authorization: `Bearer ${user?.token}`},
                     body: formData,
                 });
 
@@ -297,6 +287,7 @@
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
+                     Authorization: `Bearer ${user?.token}`
                 },
                 body: JSON.stringify({ folderName }),
             });
@@ -337,7 +328,7 @@
         try {
             const response = await fetch(`http://localhost:7930/sftp/downloads/${serverId}`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json",  Authorization: `Bearer ${user?.token}` },
                 body: JSON.stringify({ selectedFiles }),
             });
 
@@ -378,6 +369,16 @@
         document.getElementById("downloadModal").style.display = "none";
     }
     // onMount(fetchFiles)
+    
+    onMount(() => {
+        const storedUser = Cookies.get("user");
+        if (storedUser) {
+            user = JSON.parse(storedUser);
+            userStore.set(user);
+        } else {
+            goto('/login'); 
+        }
+    });
     onMount(() =>{ fetchFiles();});
 </script>
 

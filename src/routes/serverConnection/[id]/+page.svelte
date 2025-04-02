@@ -23,7 +23,10 @@
     let server = '';
     let password = "";
     async function getServerData() {
-        const response = await fetch(`http://localhost:7930/server/${serverId}`, { method: 'GET' });
+        const response = await fetch(`http://localhost:7930/server/${serverId}`, { 
+            method: 'GET',
+            headers: {Authorization: `Bearer ${user?.token}`} 
+         });
         if (!response.ok) return alert("Error While Fetch Details");
         const data = await response.json();
         server = data.server;
