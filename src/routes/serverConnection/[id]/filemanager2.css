@@ -1,0 +1,417 @@
+    body {
+        margin-top: 20px;
+    }
+    .container{
+        margin: 0;
+        padding: 0;
+        background-color: azure;
+        /* border:2px solid grey; */
+    }
+
+    header{
+        /* margin:3px; */
+        /* padding: 10px; */
+        background-color: rgb(213, 188, 188);
+        border-radius: 4px;
+        border-bottom:2px solid rgb(135, 134, 134);
+    }
+
+    main .container{
+        border:2px solid rgb(183, 177, 177);
+        background-color: rgb(191, 174, 153);
+        padding:20px;
+        /* border-radius: 6px; */
+    }
+
+    /* ✅ File Manager Actions - Uses Flexbox */
+    .file-manager-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items:center ;
+        border-bottom: 2px solid grey;
+    }
+
+    .file-manager-actions > * {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    /* .file-manager-options{
+        background-color: aliceblue;
+        border-bottom: 2px solid grey;
+    } */
+    #context-menu {
+        position: absolute;
+        z-index: 100;
+        background: #fff;
+        border-radius: 5px;
+        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+        padding: 10px;
+        width: 150px;
+        display: none; 
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    #context-menu button {
+        text-align: left;
+        padding: 8px 10px;
+        font-size: 14px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        width: 100%;
+    }
+
+    #context-menu button:hover {
+        background: #f0f0f0;
+    }
+
+    #context-menu button.btn-danger:hover {
+        background: #dc3545;
+        color: white;
+    }
+
+
+    /* ✅ File Manager Container */
+    .file-manager-container {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    /* ✅ File Item Styles */
+    .file-item {
+        position: relative;
+        z-index: 1;
+        flex: 0 0 auto;
+        border: 1px solid #eee;
+        cursor: pointer;
+        background-color: #f9f9f9;
+        border-radius: 6px;
+        transition: 0.3s ease-in-out;
+        margin: 1.2rem;
+        padding: 8px;
+        border-radius: 5px;
+        /* transition: background 0.2s; */
+
+    }
+
+    .file-item.selected {
+        background-color: rgba(0, 123, 255, 0.2); 
+        border: 1px solid #007bff; 
+    }
+    .hidden {
+        display: none !important;
+    }
+
+    .file-item:hover,
+    .file-item.focused {
+        border-color: rgba(0, 0, 0, 0.1);
+        background-color: #fff;
+    }
+
+    .file-item.focused {
+        z-index: 2;
+    }
+
+    .file-item * {
+        flex-shrink: 0;
+        text-decoration: none;
+    }
+
+    .file-item-checkbox {
+        margin: 0 !important;
+    }
+
+    .file-item-select-bg {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: -1;
+        opacity: 0;
+    }
+
+    /* ✅ File Icon & Name Styling */
+    .file-item-img {
+        background-color: transparent;
+        background-position: center;
+        background-size: cover;
+        width: 64px;
+        height: 64px;
+        display: block;
+        margin: auto;
+    }
+
+    .file-item-name {
+        display: block;
+        overflow: hidden;
+        font-size: 14px;
+        font-weight: 500;
+        text-align: center;
+        margin-top: 5px;
+    }
+
+    /* ✅ Column View */
+    .file-manager-col-view .file-item {
+        padding: 1rem;
+        width: 9rem;
+        text-align: center;
+        margin-bottom: 0.5rem;
+    }
+
+    /* ✅ Row View */
+    .file-manager-row-view .file-item {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        padding: 0.5rem 1rem;
+        margin-bottom: 0.2rem;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .file-manager-row-view .file-item-img {
+        width: 40px;
+        height: 40px;
+        margin-right: 10px;
+    }
+
+    /* ✅ Checkbox & Actions in Row View */
+    .file-manager-row-view .file-item-checkbox,
+    .file-manager-row-view .file-item-actions {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .file-manager-row-view .file-item-checkbox {
+        left: 10px;
+    }
+
+    .file-manager-row-view .file-item-actions {
+        right: 10px;
+    }
+
+    /* ✅ Dark Mode Support */
+    .dark-style .file-item {
+        background-color: #2c2c2c;
+        border-color: rgba(255, 255, 255, 0.2);
+        color: #fff;
+    }
+
+    .dark-style .file-item:hover {
+        background-color: #3a3a3a;
+    }
+
+
+    @media (min-width: 768px) {
+        .file-manager-row-view .file-item-name {
+            width: calc(100% - 15rem);
+        }
+    }
+
+    @media (min-width: 992px) {
+        .file-manager-col-view .file-item-checkbox,
+        .file-manager-col-view .file-item-actions {
+            opacity: 0;
+        }
+
+        .file-manager-col-view .file-item:hover .file-item-checkbox,
+        .file-manager-col-view .file-item.selected .file-item-checkbox,
+        .file-manager-col-view .file-item:hover .file-item-actions,
+        .file-manager-col-view .file-item.selected .file-item-actions {
+            opacity: 1;
+        }
+    }
+
+    .modal {
+        z-index: 100 !important; 
+        margin-top: 50px;
+    }
+
+    .modal-backdrop {
+        z-index: 6 !important; 
+    }
+
+    .container {
+        position: relative;
+        z-index: 1;
+    }
+    body.modal-open .container {
+        overflow: visible !important;
+    }
+    .modal-content {
+        border-radius: 10px;
+        z-index: 300;
+    }
+
+    .modal-header {
+        background: #007bff;
+        color: white;
+    }
+
+    .modal-footer {
+        justify-content: space-between;
+    }
+
+    #multiCopyActions{
+        display: none;
+    }
+
+    .dropdown-menu {
+        min-width: 160px; /* Ensures enough space inside dropdown */
+    }
+
+    .dropdown-item {
+        display: flex;
+        align-items: center;
+        padding: 8px 12px; /* Adjust spacing */
+        white-space: nowrap; /* Prevents text from wrapping */
+    }
+
+
+    /* Style for Copy Icon in Top Corner */
+    .copy-icon {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 5px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .copy-icon.hidden {
+        display: none;
+    }
+    
+    /*  Fixed Paste Button */
+    #pasteButton {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #007bff;
+        color: white;
+        padding: 10px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+    }
+    #pasteButton.hidden {
+        display: none;
+    }
+    
+    /* toast message */
+
+    .toast-container {
+        position: fixed;
+        top: 10px; 
+        right: 10px; 
+        z-index: 1000; 
+    }
+
+    .toast {
+        min-width: 250px; 
+        max-width: 400px; 
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); 
+    }
+    /* progress bar */
+    .progress-container {
+        top:0;
+        right: 0;
+        width: 10%;
+        background: #ddd;
+        height: 30px;
+        border-radius: 5px;
+        margin-top: 10px;
+        overflow: hidden;
+
+    }
+    .progress-bar {
+        height: 100%;
+        width: 0%;
+        background: green;
+        text-align: center;
+        line-height: 30px;
+        color: white;
+        font-weight: bold;
+    }
+
+
+
+    .navbar{
+        display: inline-flex;
+        border: 1px #999 solid;
+        width: 170px;
+        background-color: #fff;
+        border-radius: 10px;
+        overflow: hidden;
+        flex-direction: column;
+        z-index: 10;
+    }
+    /* .navbar ul{
+        margin: 6px;
+    }
+   ul li{
+        display: block;
+        list-style-type: none;
+        width: 1fr;
+    }
+     ul li button{
+        font-size: 1rem;
+        color: #222;
+        width: 100%;
+        height: 30px;
+        text-align: left;
+        border: 0px;
+        background-color: #fff;
+    }
+  ul li button:hover{
+        color: #000;
+        text-align: left;
+        border-radius: 5px;
+        background-color: #eee;
+    }
+    ul li button i{
+        padding: 0px 15px 0px 10px;
+    }
+  ul li button i.fa-square{
+        color: #fff;
+    }
+  ul li button:hover > i.fa-square{
+        color: #eee;
+    }
+    .navbar ul li button:hover > i.warning{
+        color: crimson;
+    }
+    :global(ul li button.info:hover){
+        color: navy;
+    }
+    hr{
+        border: none;
+        border-bottom: 1px solid #ccc;
+        margin: 5px 0px;
+    }
+    .modal {
+        display: block;
+        background: rgba(0, 0, 0, 0.5);
+    }
+    .modal-dialog {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+    .progress-bar {
+        transition: width 0.3s;
+    } */

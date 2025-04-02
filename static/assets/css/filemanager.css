@@ -1,0 +1,157 @@
+body {
+    margin-top: 20px;
+}
+
+.container {
+    margin: 0 auto;
+    padding: 10px;
+    background-color: azure;
+    max-width: 1200px; /* Centering */
+}
+
+header {
+    background-color: rgb(213, 188, 188);
+    border-radius: 4px;
+    border-bottom: 2px solid rgb(135, 134, 134);
+    padding: 10px;
+    text-align: center;
+}
+
+/* ✅ File Manager Actions */
+.file-manager-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid grey;
+    padding: 10px;
+}
+
+/* ✅ File Manager Grid Layout */
+.file-manager-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+    padding: 20px;
+}
+
+/* ✅ File Item Styling */
+.file-item {
+    background-color: #f9f9f9;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+    transition: 0.3s ease-in-out;
+}
+
+.file-item:hover {
+    background-color: #fff;
+    border-color: #007bff;
+}
+
+.file-item-img {
+    width: 64px;
+    height: 64px;
+    margin: auto;
+}
+
+.file-item-name {
+    font-size: 14px;
+    font-weight: 500;
+    margin-top: 5px;
+}
+
+/* ✅ Responsive Fixes */
+@media (max-width: 768px) {
+    .file-manager-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .file-manager-container {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    }
+}
+
+@media (max-width: 480px) {
+    .file-manager-container {
+        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+        gap: 10px;
+    }
+
+    .file-item {
+        padding: 8px;
+    }
+}
+
+/* ✅ Context Menu */
+#context-menu {
+    position: absolute;
+    z-index: 100;
+    background: #fff;
+    border-radius: 5px;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+    padding: 10px;
+    width: 150px;
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+}
+
+/* ✅ Modal Fixes */
+.modal {
+    z-index: 1050 !important;
+}
+
+.modal-backdrop {
+    z-index: 1040 !important;
+}
+
+/* ✅ Fixed Paste Button */
+#pasteButton {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #007bff;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+#pasteButton.hidden {
+    display: none;
+}
+
+/* ✅ Toast Message */
+.toast-container {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+}
+
+.toast {
+    min-width: 250px;
+    max-width: 400px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* ✅ Progress Bar */
+.progress-container {
+    width: 100%;
+    background: #ddd;
+    height: 5px;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    background: green;
+    transition: width 0.4s ease;
+}
