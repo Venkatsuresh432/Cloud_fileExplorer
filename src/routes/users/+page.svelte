@@ -1,12 +1,15 @@
 <script>
-import { onMount } from "svelte";
-import { userStore } from '$lib/store';
+   import { toast } from '@zerodevx/svelte-toast'
+    import { onMount } from "svelte";
+    import { userStore } from '$lib/store';
     import { get } from 'svelte/store'; 
     import Cookies from "js-cookie";
     import { goto } from "$app/navigation";
-
+    import { dangerToast, warningToast, successToast, infoToast}  from "$lib/toastNotifications"
+	
     let user = null;
     $: user = $userStore;
+    let date =""
     onMount(() => {
         const storedUser = Cookies.get("user");
         if (storedUser) {
@@ -18,21 +21,15 @@ import { userStore } from '$lib/store';
     });
 export let users = [];
 
-var time = ''
-
-function formatDate(date) {
- time = date ? new Date(date).toISOString().split('T')[0] : '';
- return
-}
 //   export let users = [];
   async function userData() {
     const response = await fetch("http://127.0.0.1:7930/user", { 
       method : 'GET',
       headers: { Authorization: `Bearer ${user?.token}` }
     })
-    if(!response.ok) return alert("fetch failed")
+    if(!response.ok) return dangerToast("Error While Fetch Users")
     const userItem = await response.json()
-    alert(userItem.message)
+    successToast(userItem.message)
     users = userItem.users
     console.log(users)
   }
@@ -43,6 +40,9 @@ function formatDate(date) {
   function createUser(){
     goto('/createUser')
   }
+  function updateUser(id){
+    goto(`/updateUser/${id}`)
+  }
 
   async function confirmDelete(userId) {
    if(confirm("Are You Sure?")){
@@ -50,14 +50,14 @@ function formatDate(date) {
        method : 'DELETE',
        headers : {  Authorization: `Bearer ${user?.token}` }
       });
-    if(!response.ok) return alert("Error for delete User")
+    if(!response.ok) return dangerToast('Delete User Failed')
     const data = response.json()
     console.log(data)
-    alert ("User Deleted Successfully")
+    successToast('User Deleted Successfully')
     userData();
    }
   }
-     onMount(userData);
+     onMount(()=>{ userData(); });
 </script>
 
 <main id="main" class="main">
@@ -68,7 +68,7 @@ function formatDate(date) {
           <div class="card-body position-relative">
             <h5 class="card-title">
               User List
-              <a href="#" on:click={createUser} class="btn btn-primary btn-sm position-absolute end-0 me-5">
+              <a on:click={createUser} class="btn btn-primary btn-sm position-absolute end-0 me-5">
                 AddUser
               </a>
             </h5>
@@ -79,10 +79,11 @@ function formatDate(date) {
                   <th scope="col">User Name</th>
                   <th scope="col">Email</th>
                   <th scope="col">Role</th>
-                  <th scope="col">Temporary</th>
-                  <th scope="col">Date</th>
+                  <th scope="col">Temporary User</th>
+                  <!-- <th scope="col">Date</th> -->
                   <th scope="col">Server</th>
                   <th scope="col">Status</th>
+                  <th scope="col">Update</th>
                   <th scope="col">Delete</th>
                 </tr>
               </thead>
@@ -93,11 +94,12 @@ function formatDate(date) {
                     <td>{user.userName}</td>
                     <td>{user.email}</td>
                     <td>{user.role}</td>
-                    <td>
+                    <!-- <td>
                       <input type="checkbox" class="temp-user-checkbox" bind:checked={user.disableDate} data-userid={user._id} />
-                    </td>
+                    </td> -->
                     <td>
-                       <input type="date" class="disable-date" data-userid={user._id} bind:value={time} />      
+                      {user?.disableDate || "NO "}
+                       <!-- <input type="date" class="disable-date" data-userid={user._id} bind:value={user.disableDate} />       -->
                     </td>
                     <td>
                       <a href={`/serverAllotment/${user._id}`}>
@@ -109,6 +111,11 @@ function formatDate(date) {
                       <a href="#" on:click={updateActivate(user._id , user.status)}>
                         <i class="bi bi-pencil-square"></i>
                       </a>
+                    </td>
+                    <td>
+                      <a href={`/updateUser/${user._id}`}>
+                        <i class="bi bi-person-fill-up"></i>
+                      </a> 
                     </td>
                     <td>
                       <a on:click={confirmDelete(user._id)}>

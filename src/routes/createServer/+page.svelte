@@ -6,6 +6,7 @@
   import { get } from 'svelte/store'; 
   import Cookies from "js-cookie";
   import { goto } from "$app/navigation";
+  import { dangerToast, warningToast, successToast, infoToast}  from "$lib/toastNotifications";
     let user = null;
     $: user = $userStore;
     onMount(() => {
@@ -28,12 +29,12 @@
   let pdfContainter;
 
 
-    // Form Data Variables
+  
     let serverName = "";
     let hostToConnect = "";
     let port = "";
     let password = "";
-    let passKey = "";
+    let privateKey = "";
     let bypassProxy = false;
     let status = false;
     let temp = false;
@@ -48,42 +49,36 @@ function handleFileUpload(event) {
   // Ensure the file has a .pem extension
   const fileName = uploadedFile.name;
   if (!fileName.endsWith(".pem")) {
-    alert("Only .pem files are allowed!");
+    warningToast("Only .pem files are allowed!");
     return;
   }
 
   readPemFile(uploadedFile);
 }
 
-// Function to read PEM file content
+
 function readPemFile(file) {
   const reader = new FileReader();
   reader.onload = () => {
     const pemContent = reader.result;
     console.log("PEM File Content:\n", pemContent);
-    passKey = pemContent;
+    privateKey = pemContent;
   };
   reader.readAsText(file);
 }
-
-
-
-
-    // Toggle disableDate visibility based on temp checkbox
     function toggleDisableDate() {
       if (!temp) {
         disableDate = "";
       }
     }
   
-    // Form Submission Handler (Optional)
     async function submitForm(event) {
       const data={
         serverName,
         hostToConnect,
         port,
         password,
-        passKey,
+        privateKey,
         bypassProxy,
         status,
         disableDate
@@ -93,9 +88,9 @@ function readPemFile(file) {
         headers:{ "Content-Type": "application/json", Authorization: `Bearer ${user?.token}`},
         body: JSON.stringify(data)
       });
-      if(!response.ok) return alert("Error While Creating Server");
+      if(!response.ok) return warningToast("Error While Creating Server");
       const result = response.json();
-      alert("Server Created Succcessfully")
+      successToast("Server Created Succcessfully"); 
       window.location.href = "/servers"
       console.log(result);
     }
@@ -143,13 +138,13 @@ function readPemFile(file) {
           <div class="row mb-3">
             <label for="privateKey" class="col-sm-2 col-form-label">Private Key</label>
             <div class="col-sm-10">
-              <textarea class="form-control" id="privateKey" name="passKey" rows="3" bind:value={passKey}></textarea>
+              <textarea class="form-control" id="privateKey" name="passKey" rows="3" bind:value={privateKey}></textarea>
             </div>
           </div>
   
           <!-- File Upload -->
           <div class="mb-3">
-            <p class="text-center">or</p>
+            <p class="text-center">or || .pem </p>
             <input class="form-control" type="file" accept='.pem' name="passKey" id="formFileMultiple" on:change={handleFileUpload} />
           </div>
   

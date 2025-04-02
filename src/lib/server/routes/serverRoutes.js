@@ -18,4 +18,6 @@ router.route("/server/:id")
 router.route("/servers/:id")
 .put( serverController.updateByPassProxy)
 .delete( serverController.deleteServerWithUser)
+
+router.put("/server/update/:id", serverController.updateServer)
 module.exports = router;

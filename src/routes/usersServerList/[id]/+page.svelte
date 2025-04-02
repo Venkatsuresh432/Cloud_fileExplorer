@@ -4,7 +4,8 @@
     import { get } from 'svelte/store'; 
     import Cookies from "js-cookie";
     import { goto } from "$app/navigation";
-    import { page } from '$app/stores'
+    import { page } from '$app/stores';
+    import { dangerToast, warningToast, successToast, infoToast}  from "$lib/toastNotifications"
     let userId = $page.params.id; 
   let user = null;
     $: user = $userStore;
@@ -17,9 +18,9 @@
         method : 'GET',
         headers:{  Authorization: `Bearer ${user?.token}` }
       }) 
-      if(!response.ok) return alert('No User Found')
+      if(!response.ok) return warningToast('No User Found')
       const userData = await response.json(); 
-      console.log(userData)
+      successToast  (userData.message)
       users = userData.user
       servers = users.servers
     }

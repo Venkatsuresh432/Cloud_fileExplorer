@@ -76,7 +76,3 @@ exports.getFileIcon= async (fileName) => {
     // Default icon if no match is found
     return iconMap[ext] || '/assets/icons/anonymity.png';
 }
-
-exports.typesOfFileFolder = async (filename) => {
-            
-}

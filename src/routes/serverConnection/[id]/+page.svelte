@@ -6,6 +6,7 @@
     import Cookies from "js-cookie";
     import { goto } from "$app/navigation";
     import { onMount } from 'svelte';
+    import { dangerToast, warningToast, successToast, infoToast}  from "$lib/toastNotifications";
     let user = null;
     $: user = $userStore;
     onMount(() => {
@@ -27,8 +28,9 @@
             method: 'GET',
             headers: {Authorization: `Bearer ${user?.token}`} 
          });
-        if (!response.ok) return alert("Error While Fetch Details");
+        if (!response.ok) return dangerToast("Error While Fetch Details");
         const data = await response.json();
+        infoToast(data.message)
         server = data.server;
         password = btoa(server.password);
     }

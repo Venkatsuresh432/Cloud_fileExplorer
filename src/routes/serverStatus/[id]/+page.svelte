@@ -3,6 +3,7 @@
 	import { goto } from '$app/navigation';
     import { page } from '$app/stores'
 	import { onMount } from 'svelte';
+     import { dangerToast, warningToast, successToast, infoToast}  from "$lib/toastNotifications"
     export let id = $page.params.id;
     let servers = '';
     export let name;
@@ -25,16 +26,14 @@
         method: 'GET',
         headers: { Authorization: `Bearer ${user?.token}` }
      });
-    if(!response.ok)  return alert("Error While getting Server");
+    if(!response.ok) { dangerToast("Error While getting Server"); return; }
     const serverData = await response.json();
-    alert(serverData.message)
+    infoToast(serverData.message);
     servers = serverData.server; 
     console.log(servers)
     isChecked = servers.status;
   
   }
-
-
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -50,10 +49,11 @@
         });
         if (response.ok) {
             const data = response.json()
-            console.log("Server status updated successfully"+data.message);
+            successToast("Server status updated successfully"+data.message)
             goto('/servers')
-        } else {
-            console.error("Failed to update server status");
+        } 
+        else {
+            dangerToast("Failed to update server status");
         }
     };
     onMount(serverData);

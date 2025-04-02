@@ -5,6 +5,7 @@
     import { goto } from "$app/navigation";
     import { page } from   '$app/stores'
 	  import { onMount } from 'svelte';
+    import { dangerToast, warningToast, successToast, infoToast}  from "$lib/toastNotifications";
     let data = '';
     let servers = [];
     const userId = $page.params.id 
@@ -25,11 +26,11 @@
 async function fetchFiles(){
   const response = await fetch(`http://localhost:7930/lists/serverAllotment/${userId}`, {
      method : "GET" ,
-     headers: {Authorization: `Bearer ${user?.token}`}
+     headers: {  Authorization: `Bearer ${user?.token}` }
     });
-  if(!response.ok) return alert("Error While Fetching Data");
+  if(!response.ok) return dangerToast("Error While Fetching Data");
   const fetchData = await response.json();
-  console.log(fetchData)
+  successToast(fetchData.message);
   data = fetchData.data;
   servers = fetchData.servers
 }
@@ -42,12 +43,12 @@ async function fetchFiles(){
     {
       const response = await fetch(`http://localhost:7930/lists/addServer/${userId}/${id}`,{
         method: 'PUT',
-        headers: {Authorization: `Bearer ${user?.token}`}
+        headers: { Authorization: `Bearer ${user?.token}`}
       })
-      if(!response.ok) return alert("Server Not Be Updated")
+      if(!response.ok) return dangerToast("Server Not Be Updated")
       const data = response.json();
       console.log(data)
-      alert("alert: "+data.message);
+     infoToast("alert: "+data.message);
       fetchFiles();
     }
     onMount(fetchFiles);
@@ -57,7 +58,7 @@ async function fetchFiles(){
     <section class="section">
       <div class="row">
         <div class="col-lg-12">
-          <h5>Hi {data.userName}</h5> 
+          <h5>Hi {user?.name}</h5> 
           <!-- Assigned Servers -->
           <div class="card">
             <div class="card-body">

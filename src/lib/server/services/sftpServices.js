@@ -2,13 +2,7 @@ const Client = require('ssh2-sftp-client');
 const helper =  require("../services/sftpHelper")
 const path = require('path');
 const fs = require("fs");
-const express = require('express')
-const app =express();
-const { createServer } = require('node:http');
-const { join } = require('node:path');
-const server = createServer(app);
-const { Server } = require('socket.io');
-const io = new Server(server);
+
 
 
 class SFTPService {
@@ -101,6 +95,7 @@ class SFTPService {
         );
         return items;
     }
+
     async listingFiles2(remoteDir, fileGlob) {
         console.log(`Listing ${remoteDir} ...`);
 
@@ -159,6 +154,7 @@ class SFTPService {
             console.error("Upload Failed:", err.message); 
         }
     }
+
     async uploadFiles2(localPath, remotePath, uploadId) {
         try {
             // Ensure SFTP client is connected
@@ -182,74 +178,43 @@ class SFTPService {
             console.error("Upload Failed:", err.message);
         } 
     }
-        //  Download a Single File
-        async downloadFile(remotePath, localPath) {
-            try {
-                const unixRemotePath = remotePath.replace(/\\/g, "/"); // Convert to UNIX path
-                console.log(`Downloading File: ${unixRemotePath} → ${localPath}`);
-                await this.client.fastGet(unixRemotePath, localPath);
-            } catch (err) {
-                console.error("File Download Error:", err.message);
-            }
+
+    //  Download a Single File
+    async downloadFile(remotePath, localPath) {
+        try {
+            const unixRemotePath = remotePath.replace(/\\/g, "/"); // Convert to UNIX path
+            console.log(`Downloading File: ${unixRemotePath} → ${localPath}`);
+            await this.client.fastGet(unixRemotePath, localPath);
+        } catch (err) {
+            console.error("File Download Error:", err.message);
         }
+    }
         
-        // Recursively Download a Folder
-        async downloadFolder(remoteFolder, localFolder) {
-            try {
-                const unixRemoteFolder = remoteFolder.replace(/\\/g, "/"); // Convert to UNIX path
-                console.log(`Downloading Folder: ${unixRemoteFolder} → ${localFolder}`);
-    
-                if (!fs.existsSync(localFolder)) fs.mkdirSync(localFolder, { recursive: true });
-    
-                const fileList = await this.client.list(unixRemoteFolder);
-                for (const file of fileList) {
-                    const remoteFilePath = `${unixRemoteFolder}/${file.name}`;
-                    const localFilePath = path.join(localFolder, file.name);
-    
-                    if (file.type === "d") {
-                        await this.downloadFolder(remoteFilePath, localFilePath);
-                    } else {
-                        await this.downloadFile(remoteFilePath, localFilePath);
-                    }
+    // Recursively Download a Folder
+    async downloadFolder(remoteFolder, localFolder) {
+        try {
+            const unixRemoteFolder = remoteFolder.replace(/\\/g, "/"); // Convert to UNIX path
+            console.log(`Downloading Folder: ${unixRemoteFolder} → ${localFolder}`);
+
+            if (!fs.existsSync(localFolder)) fs.mkdirSync(localFolder, { recursive: true });
+
+            const fileList = await this.client.list(unixRemoteFolder);
+            for (const file of fileList) {
+                const remoteFilePath = `${unixRemoteFolder}/${file.name}`;
+                const localFilePath = path.join(localFolder, file.name);
+
+                if (file.type === "d") {
+                    await this.downloadFolder(remoteFilePath, localFilePath);
+                } else {
+                    await this.downloadFile(remoteFilePath, localFilePath);
                 }
-            } catch (err) {
-                console.error("Folder Download Error:", err);
             }
+        } catch (err) {
+            console.error("Folder Download Error:", err);
         }
+    }
     
-        // Copy a File or Folder
-        // async copyFile(srcPath, destPath) {
-        //     try {
-        //         console.log(` Copying file: ${srcPath} → ${destPath}`);
-        //         const tempFile = `./temp-${Date.now()}`;
-        
-        //         await this.client.fastGet(srcPath, tempFile);
-        
-        //         //  Ensure destination directory exists
-        //         await this.client.mkdir(path.dirname(destPath), true);
-        
-        //         //  Ensure file exists before uploading
-        //         if (!fs.existsSync(tempFile)) {
-        //             console.error("Temp file missing:", tempFile);
-        //             throw new Error("Local file missing, copy failed.");
-        //         }
-        
-        //         //  Ensure destination path includes a filename
-        //         if (destPath.endsWith("/")) {
-        //             const fileName = path.basename(srcPath);
-        //             destPath = path.join(destPath, fileName);
-        //         }
-        
-        //         await this.client.fastPut(tempFile, destPath);
-        //         fs.unlinkSync(tempFile);
-        //         console.log(" File Copied");
-        //     } catch (err) {
-        //         console.error(" Copy File Error:", err.message);
-        //     }
-        // }
-        
-  
-    // Move (Cut-Paste) a File or Folder
+
     async moveItem(srcPath, destPath) {
         try {
         await this.client.rename(srcPath, destPath);
@@ -258,6 +223,7 @@ class SFTPService {
         console.error('Move Error:', err);
         }
     }
+
     async moveItems(srcPath, destPath) {
         try {
             // Ensure destination path includes filename if needed
@@ -285,7 +251,6 @@ class SFTPService {
         }
     }
     
-  
     // Rename a File or Folder
     async renameItem(oldPath, newPath) {
         try {
@@ -364,9 +329,6 @@ class SFTPService {
         }
     }
     
-    
-    
-    
     async copyFolder(srcPath, destPath, rootFolderName = null) {
         try {
             console.log(`Copying folder: ${srcPath} → ${destPath}`);
@@ -420,8 +382,6 @@ class SFTPService {
             console.error(" Copy Folder Error:", err.message);
         }
     }
-
-
 
     async moveFile(srcPath, destPath) {
         try {
@@ -507,8 +467,6 @@ class SFTPService {
             console.error(" Move Folder Error:", err.message);
         }
     }
-
-
 
     async disconnect() {
         await this.client.end();

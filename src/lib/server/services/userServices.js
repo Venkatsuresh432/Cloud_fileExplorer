@@ -35,6 +35,12 @@ exports.updateUserById = async (id, data) =>{
     const user = await userModel.findByIdAndUpdate(id, {$set: data },{new:true});
     return user;
 }
+exports.updateUser = async (id, data) =>{
+    const { userName, email, status, disableDate } = data;
+    console.log(data);
+    const user = await userModel.findByIdAndUpdate(id, {$set: {userName, email, status, disableDate } },{new:true});
+    return user;
+}
 exports.deleteUserById = async (id) =>{
     const result = await userModel.findByIdAndDelete(id);
     return result;

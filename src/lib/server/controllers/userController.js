@@ -7,7 +7,7 @@ const serverModel = require('../models/serverModel')
 const userService = require('../services/userServices')
 const serverService = require("../services/serverServices")
 
-
+// create user
 exports.createUserController = async (req, res) =>{ 
     try 
     {
@@ -24,6 +24,7 @@ exports.createUserController = async (req, res) =>{
     }
 }
 
+// get all user
 exports.getAllUserController = async (req, res) => {
     try {
         const users = await userService.getAllUsers();
@@ -34,6 +35,7 @@ exports.getAllUserController = async (req, res) => {
     }
 }
 
+//get User By Id
 exports.getUserByIdController = async (req, res) => {
   try {
     const { id } = req.params;
@@ -46,18 +48,21 @@ exports.getUserByIdController = async (req, res) => {
   }
 }
 
+ // update user 
 exports.UpdateUserController = async ( req, res ) => {
     try {
         const { id } = req.params;
-        const user = await userService.findById(id);
+        console.log(req.body);
+        const user = await userService.getUserbyId(id);
         if(!user) return res.status(404).json({ status:false, message :'User Not Found' });
-        const update = await userService.updateUserById(id, req.body);
+        const update = await userService.updateUser(id, req.body);
         return res.status(200).json({ status:true, message:"User Updated Successfully", update});
     }
      catch (error) {
         res.status(500).json({ status: false, message:"Error in Update Api: "+error.message})
     }  
-} 
+}
+
 // login user
 exports.loginUserController = async (req, res) =>{
     try {
@@ -84,7 +89,6 @@ exports.loginUserController = async (req, res) =>{
        return res.status(500).send({ status:false, message:"error in fetch Login Api :"+error.message })
     }
 }
-
 
 // update Status
 exports.updateStatusController = async (req, res) =>{
@@ -152,7 +156,7 @@ exports.assignServerController = async (req, res) => {
     }
 };
 
-
+// delete User Along With server
 exports.deleteUserWithServerController = async (req, res) => {
     try {
     const {id} = req.params;

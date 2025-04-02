@@ -1,4 +1,5 @@
 <script>
+    import { SvelteToast } from '@zerodevx/svelte-toast'
     import { userStore as store } from '$lib/store';
     import { get } from 'svelte/store'; 
     import { onMount } from "svelte";
@@ -20,12 +21,14 @@
         Cookies.remove("user");
         goto("/login");
     }
+    const options={}
 </script>
+<SvelteToast {options} />
   {#if user}
   <header id="header" class="header fixed-top d-flex align-items-center">
     <!-- Logo -->
     <div class="d-flex align-items-center justify-content-between ms-4">
-      <a href="#" class="logo d-flex align-items-center">
+      <a  class="logo d-flex align-items-center">
         <!-- <img src="/assets/img/logo.png" alt="" /> -->
         <span class="d-none d-lg-block">FileExplorer</span>
       </a>
@@ -61,7 +64,13 @@
           </a>
           <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
             <li class="dropdown-header">
-              <h6>Hi, {user?.name}</h6>
+              <h6>Hi,{user?.name}</h6>
+            </li>
+            <li><hr class="dropdown-divider" /></li>
+            <li>
+              <a class="dropdown-item d-flex align-items-center" href="users-profile.html">
+                <i class="bi bi-person"></i> <span>My Profile</span>
+              </a>
             </li>
             <li><hr class="dropdown-divider" /></li>
             <li>
@@ -77,7 +86,7 @@
 <aside id="sidebar" class="sidebar">
     <ul class="sidebar-nav" id="sidebar-nav">
       <li class="nav-heading">Menus</li>
-      {#if user && user?.role === "admin"}
+      {#if user && user.role === "admin"}
         <li class="nav-item">
           <a class="nav-link collapsed" href="/users">
             <i class="bi bi-person"></i>
@@ -91,7 +100,7 @@
           </a>
         </li>
       {/if}
-      {#if user && user?.role === "client"}
+      {#if user && user.role === "client"}
         <li class="nav-item">
           <a class="nav-link collapsed" href="/usersServerList">
             <i class="bi bi-hdd-stack-fill"></i>

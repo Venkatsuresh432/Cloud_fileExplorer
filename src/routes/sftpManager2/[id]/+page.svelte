@@ -10,6 +10,7 @@
     $: user = $userStore;
    import './filemanager2.css'
    import { storeCopiedItems, getCopiedItems, clearCopiedItems } from "$lib/store";
+   import { dangerToast, warningToast, successToast, infoToast}  from "$lib/toastNotifications"
 
 
    let serverId = $page.params.id;
@@ -97,24 +98,14 @@
         toggleMultiCopy()
         collectSelectedPaths();
         console.log(clipboardItems)
-        // if (!selectedPath ) return alert("No file/folder selected to copy!");
-        // fetch("http://localhost:7930/sftp/copied", {
-        //     method: "POST",
-        //     headers: { "Content-Type": "application/json" },
-        //     body: JSON.stringify({ remotePath: selectedPath, action: "copy" }),
-        // })
-        // .then(res => res.json())
-        // .then(data => console.log("Success: " + data.message))
-        // .catch(err => console.error("Copy API Error:", err));
         selectedPath ? storeCopiedItems([selectedPath]) : storeCopiedItems(clipboardItems);
-        alert(`Copied successfully`);
+        infoToast(`Copied successfully`);
     }
 
     function pasteItem() {
         const copiedItems  = getCopiedItems();
         const destPath = currentPath;
-        alert("Copy:"+ copiedItems)
-        if(!copiedItems || copiedItems === 0) return alert("No copied items found")
+        if(!copiedItems || copiedItems === 0) return warningToast("No copied items found")
         fetch(`http://localhost:7930/sftp/pasted/${serverId}?path=${destPath}`, {
             method: "POST",
             headers: { "Content-Type": "application/json",  Authorization: `Bearer ${user?.token}`  },
@@ -122,7 +113,7 @@
         })
         .then(res => res.json())
         .then(data => {
-            alert("Success: " + data.message);
+            successToast("Success: " + data.message);
             clearCopiedItems();
             fetchFiles(destPath);
         })
@@ -130,7 +121,7 @@
     }
     
     function renameItem() {
-        if (!selectedPath) return alert("No file selected!");
+        if (!selectedPath) return warningToast("No file selected!");
 
         const newName = prompt("Enter new name:");
         if (!newName) return;
@@ -145,7 +136,7 @@
         })
         .then(res => res.json())
         .then(data =>{
-            alert("alert: "+data.message);
+            infoToast("alert: "+data.message);
             fetchFiles(currentPath);
         })
         .catch(err => console.error("Rename API Error:", err));
@@ -153,12 +144,10 @@
     
     function deleteItem() {
         toggleMultiCopy();
-        collectSelectedPaths();
-        // if (!selectedPath || !confirm("Are you sure you want to delete this file?")) return;
-        
+        collectSelectedPaths();   
         var deleteList; 
         selectedPath? deleteList = [selectedPath] : deleteList = clipboardItems;
-        alert(deleteList)
+        // alert(deleteList)
         const path = currentPath;
         fetch("http://localhost:7930/sftp/delete", {
             method: "POST",
@@ -168,7 +157,7 @@
         .then(res => res.json())
         .then(data => {
            
-            alert("Deleted Successfully!"+data.message);
+            successToast("Deleted Successfully!"+data.message);
             fetchFiles(path);
         }
     )
@@ -202,20 +191,11 @@
         }
     ];
     
-
-    // function toggleMultiCopy() {
-    //     const confirmCopy = document.getElementById('confirmCopy');
-    //     const cancelMultiCopy = document.getElementById('cancelMultiCopy');
-        
-    //     confirmCopy.classList.toggle('hidden');
-    //     cancelMultiCopy.classList.toggle('hidden');
-    // }
-
      async function fetchFiles(path = "") {
       const response = await fetch(`http://localhost:7930/sftp/files/${serverId}?path=${path}`,{ method : "GET", headers : {  Authorization: `Bearer ${user?.token}` }})
-      if(!response.ok) return alert("error while fetch data");
+      if(!response.ok) return dangerToast("error while fetch data");
       const fileData = await response.json();
-        console.log('Fetching files...',fileData);
+       successToast('Fetching files...');
         server = fileData.server;
         breadcrumbPaths = fileData.breadcrumbPaths;
         files=fileData.files;
@@ -226,7 +206,7 @@
         event.preventDefault(); 
         const userConfirmed = confirm("Do you want to open this folder?");
         if (userConfirmed) {
-            alert("Navigating To"+ path)
+            infoToast("Navigating To"+ path)
            await fetchFiles(path) 
         }
     }
@@ -239,7 +219,7 @@
     async function uploadFiles(event) {
         event.preventDefault();
         if (files.length === 0) {
-            alert("Please select files to upload.");
+            warningToast("Please select files to upload.");
             return;
         }
 
@@ -257,15 +237,15 @@
                     body: formData,
                 });
 
-                if (!response.ok) throw new Error("Upload failed");
+                if (!response.ok) dangerToast("Upload failed");
 
                 const result = await response.json();
                
                 closeModal();
-                console.log(`Uploaded: ${file.name}`);
+                successToast(`Uploaded: ${file.name}`);
             } catch (error) {
                 console.error(`Upload failed for ${file.name}:`, error);
-                alert(`Upload failed for ${file.name}`);
+                dangerToast(`Upload failed for ${file.name}`);
                 files ='';
                 closeModal();
             }
@@ -278,10 +258,9 @@
     async function createFolder(event) {
         event.preventDefault();
         if (!folderName.trim()) {
-            alert("Folder name is required!");
+            warningToast("Folder name is required!");
             return;
         }
-       alert(folderName)
         try {
             const response = await fetch(`http://localhost:7930/sftp/createFolder/${serverId}`, {
                 method: "POST",
@@ -294,17 +273,17 @@
             const result = await response.json();
             console.log(result)
             if (response.ok) {
-                alert("Folder created successfully!");
+                successToast("Folder created successfully!");
                 folderName = ""; 
                 closeModal(); 
             } else {
-                alert(result.message || "Failed to create folder.");
+                dangerToast(result.message || "Failed to create folder.");
                 closeModal();
             }
         } 
         catch (error) {
             console.error("Error creating folder:", error.message);
-            alert("An error occurred while creating the folder.");
+            warningToast("An error occurred while creating the folder.");
             folderName = "";
             closeModal();
         }
@@ -317,7 +296,7 @@
         });
 
         if (selectedFiles.length === 0) {
-            alert("Please select at least one file to download.");
+            warningToast("Please select at least one file to download.");
             return false;
         }
         return true;
@@ -345,12 +324,13 @@
             link.click();
             document.body.removeChild(link);
             window.URL.revokeObjectURL(downloadUrl);
+            successToast("Downloaded Successfully")
             selectedFiles = [];
             closeModal();
 
         } catch (error) {
             console.error("Download Error:", error);
-            alert("An error occurred while downloading files.");
+            warningToast("An error occurred while downloading files.");
             selectedFiles = [];
             closeModal(); 
         }

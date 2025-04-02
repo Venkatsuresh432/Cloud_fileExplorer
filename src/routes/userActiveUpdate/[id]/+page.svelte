@@ -5,6 +5,7 @@
     import { userStore } from '$lib/store';
     export let id = $page.params.id;
     import { onMount } from "svelte";
+    import { dangerToast, warningToast, successToast, infoToast}  from "$lib/toastNotifications"
     let user = null;
     $: user = $userStore;
     let isChecked = ''
@@ -14,9 +15,12 @@
         method : 'GET' ,
         headers: {  Authorization: `Bearer ${user?.token}` }
     })
-    if(!response.ok) return alert("fetch failed")
+    if(!response.ok){
+      dangerToast('Failed To Getting Data')
+         return;
+    }  
     const userItem = await response.json()
-    alert(userItem.message)
+    infoToast(userItem.message)	
     users = userItem.user
     console.log(users)
     isChecked = Boolean(users.status)
@@ -35,10 +39,10 @@
             })
         });
         if (response.ok) {
-            console.log("User activation status updated successfully");
+           successToast("User activation status updated successfully")
             goto('/users')
         } else {
-            console.error("Failed to update user activation status");
+            dangerToast("Failed to update user activation status")
         }
     };
     onMount(() => {

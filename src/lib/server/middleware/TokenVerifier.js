@@ -1,5 +1,5 @@
 const JWT = require('jsonwebtoken')
-const user = require('../services/userServices')
+const adminMiddleware =require('./adminMiddleware')
 
 exports.userVerification = async (req, res, next) =>{
    try{
@@ -27,11 +27,7 @@ exports.adminVerification = async (req, res, next) => {
                 else
                 {
                     req.body.id = decode.id;
-                    const data = user.getUserbyId(req.body.id);
-                    if(!data) return res.status(500).json({ message: "Authentication Failed User Not Found"});
-                    if(data.role === process.env.ADMIN)
-                        { next(); }
-                    else return res.status(401).json({ message: "Access denied" })
+                    adminMiddleware.adminCheck(req, res, next)
                 }
         })
      }

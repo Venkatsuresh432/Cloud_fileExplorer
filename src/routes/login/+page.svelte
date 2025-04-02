@@ -1,30 +1,45 @@
 <script>
+    import { toast } from '@zerodevx/svelte-toast'
     import { onMount } from "svelte";
-    import { userStore as store } from '$lib/store'; 
+    import { clearCopiedItems, userStore as store } from '$lib/store'; 
     import { goto }  from '$app/navigation'
     import { get } from 'svelte/store'; 
-   
     import Cookies from "js-cookie";
-    
- 
+   
     let email = "";
     let password = "";
+    let isChecked ="";
   
+    function removeAllData(){
+      store.set(null);
+      Cookies.remove("user");
+      clearCopiedItems();
+    }
     async function login(event) {
       event.preventDefault(); 
-      console.log("Logging in with:", email, password);
       try {
+        if(!isChecked)
+        {
+          toast.push('Please Check The Remember me Button', { theme: {
+            '--toastColor': '#856404',
+            '--toastBackground': '#FFF3CD',
+            '--toastBarBackground': '#FFA500'
+            },pausable:true}) 
+            return;
+        } 
         const response = await fetch("http://localhost:7930/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password }),
         });
-  
         if (!response.ok) {
-          alert("Login failed: Invalid credentials.");
+            toast.push('Login Failed:Invalid Credentials', { theme: {
+            '--toastColor': '#721C24',
+            '--toastBackground': '#F8D7DA',
+            '--toastBarBackground': '#DC3545'
+            },pausable:true})
           return;
         }
-  
         const data = await response.json();
         console.log(data)
         const user = data.data
@@ -42,19 +57,27 @@
                 token: data.token,
                 role: user.role
             });
-        console.log("Login successful:", data);
+            toast.push('Login Success', { theme: {
+            '--toastColor': '#155724',
+            '--toastBackground': '#DFF6DD',
+            '--toastBarBackground': '#28A745'
+          }, pausable:true})
           if(user.role === 'admin')
-          {goto('/users',  { replaceState: true, invalidateAll: true })}
+          { goto('/users',  { replaceState: true, invalidateAll: true })}
           else
-          {goto(`/usersServerList/${user._id}`,{ replaceState: true, invalidateAll: true })}
+          { goto(`/usersServerList/${user._id}`,{ replaceState: true, invalidateAll: true })}
       } 
       catch (error) {
         console.error("Login error:", error.message);
-        alert("An error occurred. Please try again.");
+        toast.push('Login Failed:'+error.message, { theme: {
+            '--toastColor': '#721C24',
+            '--toastBackground': '#F8D7DA',
+            '--toastBarBackground': '#DC3545'
+            },pausable:true})
       }
     }
+    onMount(removeAllData);
   </script>
-  
   <main>
     <div class="container">
       <section class="section register min-vh-100 d-flex flex-column align-items-center justify-content-center py-4">
@@ -62,9 +85,9 @@
           <div class="row justify-content-center">
             <div class="col-lg-4 col-md-6 d-flex flex-column align-items-center justify-content-center">
               <div class="d-flex justify-content-center py-4">
-                <a href="/index" class="logo d-flex align-items-center w-auto">
-                  <span class="d-none d-lg-block">Cloud File Manager</span>
-                </a>
+                <div class="logo d-flex align-items-center w-auto">
+                  <span class="d-none d-lg-block">FileExplorer</span>
+                </div>
               </div>
               <div class="card mb-3">
                 <div class="card-body">
@@ -92,7 +115,7 @@
   
                     <div class="col-12">
                       <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="remember" value="true" id="rememberMe" required/>
+                        <input class="form-check-input" type="checkbox" name="remember" bind:checked={isChecked} id="rememberMe" required/>
                         <label class="form-check-label" for="rememberMe" >Remember me</label>
                       </div>
                     </div>
@@ -110,7 +133,6 @@
       </section>
     </div>
   </main>
-  
+ 
   <style>
   </style>
-  

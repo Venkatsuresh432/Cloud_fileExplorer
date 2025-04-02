@@ -2,6 +2,7 @@
     import { userStore } from '$lib/store';
     import { page }  from '$app/stores'
 	import { onMount } from 'svelte';
+    import { dangerToast, warningToast, successToast, infoToast}  from "$lib/toastNotifications"
     export let id = $page.params.id;
     export let name;
     let servers = ''
@@ -24,9 +25,9 @@
         method: 'GET',
          header: { Authorization: `Bearer ${user?.token}`}
      });
-    if(!response.ok)  return alert("Error While getting Server");
+    if(!response.ok)  return dangerToast("Error While getting Server");
     const serverData = await response.json();
-    alert(serverData.message)
+    infoToast(serverData.message)
     servers = serverData.server; 
     console.log(servers)
     isChecked = servers.status;
@@ -47,10 +48,10 @@
             })
         });
         if (response.ok) {
-            console.log("Proxy access updated successfully");
+            successToast("Proxy access updated successfully");
             goto('/servers')
         } else {
-            console.error("Failed to update proxy access");
+            dangerToast("Failed to update proxy access");
         }
     };
     onMount(serverData);

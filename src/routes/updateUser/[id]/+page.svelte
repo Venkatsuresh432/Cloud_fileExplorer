@@ -1,24 +1,25 @@
 <script>
-import { onMount } from "svelte";
-import { userStore } from '$lib/store';
+ import { userStore } from '$lib/store';
+    import{ onMount }  from "svelte"
     import { get } from 'svelte/store'; 
     import Cookies from "js-cookie";
     import { goto } from "$app/navigation";
-    import { dangerToast, warningToast, successToast, infoToast}  from "$lib/toastNotifications";
+    import { page } from "$app/stores";
+    import { dangerToast, warningToast, successToast, infoToast}  from "$lib/toastNotifications"
     let user = null;
     $: user = $userStore;
     onMount(() => {
-        if (!user) {
-            const storedUser = Cookies.get("user");
-            if (storedUser) {
-                user = JSON.parse(storedUser);
-                userStore.set(user);
-            } else {
-              goto('/login');
-            }
-        }
-    })
+        const storedUser = Cookies.get("user");
+        if (storedUser) {
+            user = JSON.parse(storedUser);
+            userStore.set(user);
+        } else {
+            goto('/login'); 
+        };
+        fetchData();
+    });
   // Form Data Variables
+  let id = $page.params.id
   let userName = "";
   let email = "";
   let password = "";
@@ -31,6 +32,21 @@ import { userStore } from '$lib/store';
       disableDate = "";
     }
   }
+  async function fetchData() {
+    const response = await fetch(`http://localhost:7930/user/${id}`,{
+      method:"GET",
+      headers:{ Authorization: `Bearer ${user?.token}` }
+    });
+    if(!response.ok) return dangerToast("Error While Fetch Data");
+    const data = await response.json();
+    successToast(data.message);
+     userName = data.user.userName;
+     email = data.user.email;
+     status = data.user.status;
+     disableDate = data.user.disableDate;
+  }
+
+
   // Form Submission Handler (Optional)
   async function submitForm(event) {
     //Prevent default form submission (if handling it manually)
@@ -43,32 +59,28 @@ import { userStore } from '$lib/store';
       disableDate
     }
     console.log(data);
-    const response = await fetch("http://127.0.0.1:7930/user",{
-      method:'POST',
-      headers: { 'Content-Type' : 'application/json', Authorization: `Bearer ${user?.token}` },
+    const response = await fetch(`http://127.0.0.1:7930/user/${id}`,{
+      method:'PUT',
+      headers: { 
+        'Content-Type' : 'application/json',
+         Authorization: `Bearer ${user?.token}`
+       },
       body: JSON.stringify(data)
     });
-    if(!response) return dangerToast("Error While Add User")
-    const result = response.json()
-    successToast("User Added Successfully")
-    window.location.href = "/users"
-    console.log({
-      userName,
-      email,
-      password,
-      status,
-      temp,
-      disableDate
-    });
+    if(!response) return dangerToast("error while add user");
+    const result = response.json();
+    successToast("User Updated Successfully");
+    window.location.href = "/users";
+
   }
 </script>
 
 <main id="main" class="main">
   <div class="card">
     <div class="card-body">
-      <h5 class="card-title">Create User</h5>
+      <h5 class="card-title">Update User</h5>
 
-      <form method="POST" on:submit={submitForm}>
+      <form action="/create/addUser" method="POST" on:submit={submitForm}>
         <!-- Username Field -->
         <div class="row mb-3">
           <label for="username" class="col-sm-2 col-form-label">Username</label>
@@ -86,12 +98,12 @@ import { userStore } from '$lib/store';
         </div>
 
         <!-- Password Field -->
-        <div class="row mb-3">
+        <!-- <div class="row mb-3">
           <label for="password" class="col-sm-2 col-form-label">Password</label>
           <div class="col-sm-10">
             <input type="password" class="form-control" name="password" bind:value={password} required />
           </div>
-        </div>
+        </div> -->
 
         <!-- Status Checkbox -->
         <div class="row mb-3">

@@ -1,10 +1,9 @@
-
 const serverService = require('../services/serverServices');
 const userService = require("../services/userServices")
 
+// create an server
 exports.createServerComponent = async (req, res) => {
 try {
- 
     const server = await serverService.createServer(req.body);
     if(!server) return res.status(500).json({ status:false, message:'error while creating server' });
     res.status(201).json({ status:true, message:'Server Created', server });  
@@ -13,7 +12,6 @@ catch (error) {
     console.log('error occured in creating server:',error.message);
     res.status(500).send({ status:false, message:"error occured in creating server: "+error.message })
 }};
-
 
 // update an server Details
 exports.updateStatus = async (req, res) =>{
@@ -36,7 +34,7 @@ exports.updateStatus = async (req, res) =>{
     }
 }
 
-
+//update proxy
 exports.updateByPassProxy = async (req, res) =>{
     try {
         const { bypassProxy } =req.body;
@@ -57,7 +55,8 @@ exports.updateByPassProxy = async (req, res) =>{
        return res.status(500).json({ status:false, message:"error occured while upadate", error:error.message })
     }
 }
-
+ 
+// delete server only
 exports.deleteServer = async (req, res) => {
     try {
         const { id } = req.params;
@@ -73,7 +72,7 @@ exports.deleteServer = async (req, res) => {
     }
 } 
 
-
+// get all servers
 exports.getallServers = async (req, res) => {
     try{
         const data = await serverService.getAllServers();
@@ -85,6 +84,7 @@ exports.getallServers = async (req, res) => {
     }
 }
 
+// get single server
 exports.getServerById = async (req, res) => {
     try {
         const { id } = req.params;
@@ -118,5 +118,20 @@ exports.deleteServerWithUser = async (req, res) => {
     catch (error) 
     {
         return res.status(500).json({ status:false, message: "Error in API: "+error.message }); 
+    }
+}
+
+// Update Server 
+exports.updateServer = async (req, res) => {
+    try {
+        const { id } =req.params;
+        const server = await serverService.getServerById(id);
+        if(!server) return res.status(404).send({ message:"Server Not Found" });
+        const update = await serverService.updateServerById(id, req.body);
+        if(!update) return res.status(500).send({ message:"Update Failed" });
+        return res.status(200).send({message: "Server Updated Successfully" });
+    } 
+    catch (error) {
+        return res.status(500).send({ message:"Error While Update Server"+error.message })
     }
 }

@@ -8,19 +8,10 @@
     import { page } from '$app/stores'
     let user = null;
     $: user = $userStore;
-    onMount(() => {
-        if (!user) {
-            const storedUser = Cookies.get("user");
-            if (storedUser) {
-                user = JSON.parse(storedUser);
-                userStore.set(user);
-            } else {
-              goto('/login');
-            }
-        }
-    })
    import './filemanager2.css'
    import { storeCopiedItems, getCopiedItems, clearCopiedItems } from "$lib/store";
+   import { dangerToast, warningToast, successToast, infoToast}  from "$lib/toastNotifications"
+	import { success } from '$lib/server/utils/responseHandler';
 
 
    let serverId = $page.params.id;
@@ -104,36 +95,28 @@
             w: width
         }
     }
+
     function copyItem() {
         toggleMultiCopy()
         collectSelectedPaths();
         console.log(clipboardItems)
-        // if (!selectedPath ) return alert("No file/folder selected to copy!");
-        // fetch("http://localhost:7930/sftp/copied", {
-        //     method: "POST",
-        //     headers: { "Content-Type": "application/json" },
-        //     body: JSON.stringify({ remotePath: selectedPath, action: "copy" }),
-        // })
-        // .then(res => res.json())
-        // .then(data => console.log("Success: " + data.message))
-        // .catch(err => console.error("Copy API Error:", err));
         selectedPath ? storeCopiedItems([selectedPath]) : storeCopiedItems(clipboardItems);
-        alert(`Copied successfully`);
+        infoToast(`Copied successfully`);
     }
 
     function pasteItem() {
         const copiedItems  = getCopiedItems();
         const destPath = currentPath;
-        alert("Copy:"+ copiedItems)
-        if(!copiedItems || copiedItems === 0) return alert("No copied items found")
+        // alert("Copy:"+ copiedItems)
+        if(!copiedItems || copiedItems === 0) return dangerToast("No copied items found");
         fetch(`http://localhost:7930/sftp/pasted/${serverId}?path=${destPath}`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json",  Authorization: `Bearer ${user?.token}`  },
             body: JSON.stringify(copiedItems),
         })
         .then(res => res.json())
         .then(data => {
-            alert("Success: " + data.message);
+            infoToast("Success: " + data.message);
             clearCopiedItems();
             fetchFiles(destPath);
         })
@@ -141,7 +124,7 @@
     }
     
     function renameItem() {
-        if (!selectedPath) return alert("No file selected!");
+        if (!selectedPath) return warningToast("No file selected!");
 
         const newName = prompt("Enter new name:");
         if (!newName) return;
@@ -151,12 +134,12 @@
 
         fetch("http://localhost:7930/sftp/rename", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json",  Authorization: `Bearer ${user?.token}` },
             body: JSON.stringify({ serverId, oldPath: selectedPath, newPath }),
         })
         .then(res => res.json())
         .then(data =>{
-            alert("alert: "+data.message);
+            infoToast("alert: "+data.message);
             fetchFiles(currentPath);
         })
         .catch(err => console.error("Rename API Error:", err));
@@ -165,7 +148,6 @@
     function deleteItem() {
         toggleMultiCopy();
         collectSelectedPaths();
-        // if (!selectedPath || !confirm("Are you sure you want to delete this file?")) return;
         
         var deleteList; 
         selectedPath? deleteList = [selectedPath] : deleteList = clipboardItems;
@@ -173,12 +155,13 @@
         const path = currentPath;
         fetch("http://localhost:7930/sftp/delete", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json",  Authorization: `Bearer ${user?.token}` },
             body: JSON.stringify({ serverId, filePaths: deleteList  }),
         })
         .then(res => res.json())
         .then(data => {
-            alert("Deleted Successfully!"+data.message);
+           
+            infoToast("Deleted Successfully!"+data.message);
             fetchFiles(path);
         }
     )
@@ -213,9 +196,10 @@
     ];
     
      async function fetchFiles(path = "") {
-      const response = await fetch(`http://localhost:7930/sftp/files/${serverId}?path=${path}`)
-      if(!response.ok) return alert("error while fetch data");
+      const response = await fetch(`http://localhost:7930/sftp/files/${serverId}?path=${path}`,{ method : "GET", headers : {  Authorization: `Bearer ${user?.token}` }})
+      if(!response.ok) return dangerToast("error while fetch data");
       const fileData = await response.json();
+        successToast(fileData.message)
         console.log('Fetching files...',fileData);
         server = fileData.server;
         breadcrumbPaths = fileData.breadcrumbPaths;
@@ -227,7 +211,7 @@
         event.preventDefault(); 
         const userConfirmed = confirm("Do you want to open this folder?");
         if (userConfirmed) {
-            alert("Navigating To"+ path)
+            infoToast("Navigating To"+ path)
            await fetchFiles(path) 
         }
     }
@@ -240,10 +224,9 @@
     async function uploadFiles(event) {
         event.preventDefault();
         if (files.length === 0) {
-            alert("Please select files to upload.");
+            warningToast("Please select files to upload.");
             return;
         }
-
         for (let file of files) {
             const uploadId = Date.now().toString();
             const formData = new FormData();
@@ -254,53 +237,61 @@
                 const response = await fetch(`http://localhost:7930/sftp/uploadFile/${serverId}?path=${currentPath}`,
                  {
                     method: "POST",
+                    headers :{ Authorization: `Bearer ${user?.token}`},
                     body: formData,
                 });
 
-                if (!response.ok) throw new Error("Upload failed");
+                if (!response.ok) return dangerToast("Upload failed");
 
                 const result = await response.json();
-                console.log(`Uploaded: ${file.name}`);
-
+               
+                closeModal("uploadModal");
+                successToast(`Uploaded: ${file.name}`);
             } catch (error) {
                 console.error(`Upload failed for ${file.name}:`, error);
-                alert(`Upload failed for ${file.name}`);
+                dangerToast(`Upload failed for ${file.name}`);
+                files ='';
+                closeModal("uploadModal");
             }
         }
-            files =null;
+        files ='';
             fetchFiles();
+            closeModal("uploadModal");
     };
+
     // craete folder
     async function createFolder(event) {
         event.preventDefault();
         if (!folderName.trim()) {
-            alert("Folder name is required!");
+            warningToast("Folder name is required!");
             return;
         }
-       alert(folderName)
+    //    alert(folderName)
         try {
             const response = await fetch(`http://localhost:7930/sftp/createFolder/${serverId}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
+                     Authorization: `Bearer ${user?.token}`
                 },
                 body: JSON.stringify({ folderName }),
             });
             const result = await response.json();
             console.log(result)
             if (response.ok) {
-                alert("Folder created successfully!");
+                successToast("Folder created successfully!");
                 folderName = ""; 
-                closeModal(); 
+                closeModal(addFolderModal); 
             } else {
-                alert(result.message || "Failed to create folder.");
-                closeModal();
+                dangerToast(result.message || "Failed to create folder.");
+                closeModal(addFolderModal);
             }
         } 
         catch (error) {
             console.error("Error creating folder:", error.message);
-            alert("An error occurred while creating the folder.");
-            closeModal();
+            dangerToast("An error occurred while creating the folder.");
+            folderName = "";
+            closeModal(addFolderModal);
         }
     }
     function collectSelectedFiles() {
@@ -311,25 +302,24 @@
         });
 
         if (selectedFiles.length === 0) {
-            alert("Please select at least one file to download.");
+            warningToast("Please select at least one file to download.");
             return false;
         }
         return true;
     }
 
-    async function downloadSelectedFiles() {
+    async function downloadSelectedFiles(event) {
+        event.preventDefault()
         if (!collectSelectedFiles()) return;
         try {
             const response = await fetch(`http://localhost:7930/sftp/downloads/${serverId}`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json",  Authorization: `Bearer ${user?.token}` },
                 body: JSON.stringify({ selectedFiles }),
             });
 
-            if (!response.ok) {
-                throw new Error("Failed to download files");
-            }
-
+            if (!response.ok)  return dangerToast("Failed to download files");
+            
             const blob = await response.blob(); 
             const downloadUrl = window.URL.createObjectURL(blob);
             const link = document.createElement("a");
@@ -339,30 +329,51 @@
             link.click();
             document.body.removeChild(link);
             window.URL.revokeObjectURL(downloadUrl);
+            successToast("Downloaded Successfully");
             selectedFiles = [];
-            closeModal();
+            closeModal("downloadModal");
 
-        } catch (error) {
+        }
+         catch (error) {
             console.error("Download Error:", error);
-            alert("An error occurred while downloading files.");
+            dangerToast("An error occurred while downloading files.");
             selectedFiles = [];
-            closeModal(); 
+            closeModal("downloadModal"); 
         }
     }
  
     function navigateTo(path) {
         console.log('Navigating to:', path);
-        // You would typically update the currentPath and fetch files for this path
     }
-    function closeModal() {
-        document.getElementById("addFolderModal").classList.remove("show");
-        document.getElementById("addFolderModal").style.display = "none";
+    // function closeModal() {
+    //     document.getElementById("addFolderModal").classList.remove("show");
+    //     document.getElementById("addFolderModal").style.display = "none";
+    //     document.getElementById("uploadModal").classList.remove("show");
+    //     document.getElementById("uploadModal").style.display = "none";
+    //     document.getElementById("downloadModal").classList.remove("show");
+    //     document.getElementById("downloadModal").style.display = "none";
+    // }
+    function closeModal(id){
+        let modal = new bootstrap.Modal(document.getElementById(id));
+        modal.hide();
     }
-    // onMount(fetchFiles)
-    onMount(() =>{ fetchFiles();});
+    
+    
+    onMount(() => {
+        const storedUser = Cookies.get("user");
+        if (storedUser) {
+            user = JSON.parse(storedUser);
+            userStore.set(user);
+        } else {
+            goto('/login'); 
+        };
+        fetchFiles();
+    });
+   
 </script>
 
-    <div class="container p-3">    
+
+    <div class="container">    
     <header class="py-3">
             <nav class="breadcrumb-container px-5" aria-label="breadcrumb">
                 <ol class="breadcrumb">
